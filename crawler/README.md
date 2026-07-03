@@ -61,6 +61,42 @@ npm run crawl   # data/listings.json 생성
 npm run serve   # http://localhost:4000/api/listings
 ```
 
+## 백엔드 연동 방법 (요약)
+
+1. 이 크롤러를 서버로 띄운다: `npm run serve` (기본 포트 4000, `.env`의 `PORT`로 변경 가능).
+2. 백엔드에서 아래처럼 호출해서 받은 JSON을 그대로 저장/사용하면 된다.
+
+```bash
+curl "http://localhost:4000/api/listings?category=인턴&keyword=백엔드"
+```
+
+응답 형태:
+
+```json
+{
+  "count": 1,
+  "listings": [
+    {
+      "source": "linkareer",
+      "sourceId": "333057",
+      "category": "인턴",
+      "title": "[전환형 인턴] 화상영어 링글 브랜드 & 캠페인 마케팅",
+      "organization": "(주)링글잉글리시에듀케이션서비스",
+      "url": "https://linkareer.com/activity/333057",
+      "deadline": "2026-10-01T14:59:59.999Z",
+      "thumbnailUrl": "https://media-cdn.linkareer.com/...",
+      "viewCount": 162,
+      "crawledAt": "2026-07-03T19:31:24.708Z"
+    }
+  ]
+}
+```
+
+- `category`는 `공모전 | 대외활동 | 인턴 | 채용 | 자격시험 | 운동` 중 하나. 쿼리 파라미터로 필터링.
+- `keyword`는 `title`/`organization`에 대한 부분일치 검색.
+- 백엔드 DB에 저장할 때는 `source + sourceId` 조합을 유니크 키(PK)로 잡고 upsert하면 재크롤링해도 중복이 안 생긴다.
+- 매번 실시간 요청 시 크롤링하지 말고, 크롤러는 하루 1~2회(cron, [스케줄링](#스케줄링-cron) 참고)만 갱신 → 백엔드는 그 결과를 이 API로 가져다 캐시/DB에 반영하는 방식으로 쓴다.
+
 ## 백엔드에 데이터 주입하는 3가지 방법
 
 1. **HTTP로 당겨가기 (권장, 스택 무관)**: `npm run serve` 로 크롤러를 띄워두고, 백엔드가
