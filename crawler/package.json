@@ -1,0 +1,26 @@
+{
+  "name": "hacksageongo-crawler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "공모전/대외활동/인턴/채용 공고 크롤러 — 정규화된 데이터를 JSON 파일 또는 Supabase로 적재하고, HTTP API로 백엔드에 제공한다.",
+  "type": "module",
+  "scripts": {
+    "crawl": "tsx src/crawl.ts",
+    "serve": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "optionalDependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.10",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
+}
