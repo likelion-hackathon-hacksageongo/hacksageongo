@@ -14,6 +14,8 @@ const CATEGORY_PATH: Record<ListingCategory, string | null> = {
   공모전: "contest",
   인턴: "intern",
   채용: null, // 링커리어에는 정규직 채용 카테고리가 없음 → worknet.ts 참고
+  자격시험: null, // qnet.ts 참고
+  운동: null, // seoulSports.ts 참고
 };
 
 interface ApolloActivity {

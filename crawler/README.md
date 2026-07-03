@@ -16,6 +16,11 @@
   **그래도 잔여 리스크는 있으니, 실 서비스로 확장 시 링커리어에 제휴/API 문의를 권장.**
 - 채용(정규직) 카테고리는 링커리어에 없고, 워크넷(work24) 공식 오픈 API로 대체했다 — 이쪽은
   고용노동부가 제공하는 합법·무료 API라 리스크가 없다.
+- 서비스가 "졸업까지 목표 달성"을 돕는 폭넓은 성격이라, 취업/공모전 외에 자기계발(자격증)과
+  운동 카테고리를 추가했다. 둘 다 공식 오픈API만 사용:
+  - **자격시험**: Q-net(한국산업인력공단) 국가자격시험 시행일정 API.
+  - **운동**: 서울 열린데이터광장 공공서비스예약(체육시설) API — 서울대 학부생 대상 서비스라
+    기본값을 관악구로 필터링(`SEOUL_SPORTS_DISTRICTS`로 조정 가능).
 
 ## 왜 GraphQL 재현이 아니라 SSR JSON 파싱인가
 
@@ -40,6 +45,8 @@ Next.js 데이터 계약이 크게 안 바뀌는 한 안정적이다. `src/sourc
 src/
   sources/linkareer.ts   # SSR JSON 파싱 (대외활동/공모전/인턴)
   sources/worknet.ts     # work24 오픈 API (채용) — WORKNET_AUTH_KEY 필요
+  sources/qnet.ts        # Q-net 오픈 API (자격시험) — QNET_SERVICE_KEY 필요
+  sources/seoulSports.ts # 서울 열린데이터광장 오픈 API (운동, 관악구 필터) — SEOUL_OPENAPI_KEY 필요
   store/                 # 저장 어댑터 (json 기본 / supabase)
   crawl.ts               # 전체 소스 크롤 → store 적재 (CLI: npm run crawl)
   server.ts              # GET /api/listings?category=&keyword= (CLI: npm run serve)
@@ -71,6 +78,25 @@ npm run serve   # http://localhost:4000/api/listings
 3. `src/sources/worknet.ts`의 엔드포인트/파라미터는 비로그인 상태에서 확인 가능한 공개 자료
    기준으로 작성한 best-effort 버전이다. **authKey 발급 후 실제 응답(XML)을 한번 찍어보고
    필드명이 다르면 `parseWorknetXml`만 맞춰 조정하면 된다** (나머지 파이프라인은 안 바뀜).
+
+## 자격시험(Q-net) API 설정
+
+1. https://www.data.go.kr/data/15074408/openapi.do 에서 활용신청 → 서비스키 발급(승인까지
+   몇 시간 걸릴 수 있음).
+2. `.env`의 `QNET_SERVICE_KEY`에 채움.
+3. `apis.data.go.kr` 계열 API는 응답 스키마가 기관마다 `response.body.items.item[]` 형태로
+   조금씩 다르게 오는 경우가 많아, `src/sources/qnet.ts`의 `normalizeResponse`가 몇 가지
+   흔한 형태를 관대하게 처리하도록 해두었다. 실제 키로 호출해보고 다르면 그 함수만 조정.
+
+## 운동(서울 체육시설) API 설정
+
+1. https://data.seoul.go.kr/dataList/OA-2266/S/1/datasetView.do 에서 인증키 발급(즉시 발급).
+   `sample` 키로 최대 5건까지는 발급 없이 바로 테스트 가능 — 실제로 이 키로 스키마를
+   검증했다.
+2. `.env`의 `SEOUL_OPENAPI_KEY`에 채움. `SEOUL_SPORTS_DISTRICTS`로 대상 자치구를 조정
+   (기본값 `관악구`; 서울대입구역 인접까지 넓히려면 `관악구,동작구` 처럼 콤마로 추가).
+3. `src/sources/seoulSports.ts`는 응답 필드(`SVCID`, `SVCNM`, `AREANM`, `RCPTENDDT` 등)를
+   실제 API 호출로 확인하고 작성해 별도 조정 없이 바로 동작한다.
 
 ## 스케줄링 (cron)
 

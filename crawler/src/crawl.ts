@@ -1,5 +1,7 @@
 import { crawlLinkareer } from "./sources/linkareer.js";
 import { crawlWorknet } from "./sources/worknet.js";
+import { crawlQnet } from "./sources/qnet.js";
+import { crawlSeoulSports } from "./sources/seoulSports.js";
 import { getStore } from "./store/index.js";
 import type { Listing, ListingCategory } from "./types.js";
 
@@ -24,6 +26,22 @@ export async function runCrawl(): Promise<Listing[]> {
     all.push(...worknetListings);
   } catch (err) {
     console.error("[worknet] 크롤링 실패:", err);
+  }
+
+  try {
+    const qnetListings = await crawlQnet();
+    console.log(`[qnet] 자격시험: ${qnetListings.length}건 수집`);
+    all.push(...qnetListings);
+  } catch (err) {
+    console.error("[qnet] 크롤링 실패:", err);
+  }
+
+  try {
+    const seoulSportsListings = await crawlSeoulSports();
+    console.log(`[seoul_sports] 운동: ${seoulSportsListings.length}건 수집`);
+    all.push(...seoulSportsListings);
+  } catch (err) {
+    console.error("[seoul_sports] 크롤링 실패:", err);
   }
 
   const store = await getStore();
