@@ -7,6 +7,7 @@ import chatRoutes from "./chat.routes.js";
 import activityCandidatesRoutes from "./activityCandidates.routes.js";
 import plansRoutes from "./plans.routes.js";
 import todosRoutes from "./todos.routes.js";
+import aiProposalsRoutes from "./aiProposals.routes.js";
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use("/chat", chatRoutes);
 router.use("/activity-candidates", activityCandidatesRoutes);
 router.use("/plans", plansRoutes);
 router.use("/todos", todosRoutes);
+router.use("/ai-proposals", aiProposalsRoutes);
 
 export default router;
