@@ -1,7 +1,7 @@
-export type ListingCategory = "공모전" | "대외활동" | "인턴" | "채용" | "자격시험" | "운동";
+export type ListingCategory = "공모전" | "대외활동" | "인턴" | "운동";
 
 export interface Listing {
-  source: "linkareer" | "worknet" | "qnet" | "seoul_sports";
+  source: "linkareer" | "seoul_sports";
   sourceId: string;
   category: ListingCategory;
   title: string;

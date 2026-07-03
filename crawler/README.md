@@ -1,8 +1,12 @@
 # crawler
 
-공모전 / 대외활동 / 인턴 / 채용 공고를 모아 정규화된 형태로 저장하고, 백엔드가 언어에 상관없이
-가져다 쓸 수 있도록 HTTP API로도 제공하는 독립 모듈. 백엔드 레포/스택이 아직 정해지지 않은 상태라
-`crawler/` 하위에 별도 프로젝트로 분리해두었다.
+공모전 / 대외활동 / 인턴 / 운동(관악구) 정보를 모아 정규화된 형태로 저장하고, 백엔드가 언어에
+상관없이 가져다 쓸 수 있도록 HTTP API로도 제공하는 독립 모듈. 백엔드 레포/스택이 아직 정해지지
+않은 상태라 `crawler/` 하위에 별도 프로젝트로 분리해두었다.
+
+> 채용(워크넷)·자격시험(Q-net)도 검토했으나, 워크넷은 기업회원 심사가 필요하고 Q-net은 서비스키
+> 발급 승인 대기가 있어 이번 범위에서는 제외했다. 나중에 키를 받으면 같은 구조(`src/sources/`에
+> 소스 추가 → `crawl.ts`에서 호출)로 다시 붙이면 된다.
 
 ## 시작 전 확인한 것 (리스크 정찰)
 
@@ -14,11 +18,8 @@
   본문 전체를 복제/재게시하지 않고 제목·기관·마감일·원문 링크만 저장해 링커리어로 트래픽을
   링크백하는 방식으로 리스크를 최소화했다 (저작권/DB권 이슈 방어).
   **그래도 잔여 리스크는 있으니, 실 서비스로 확장 시 링커리어에 제휴/API 문의를 권장.**
-- 채용(정규직) 카테고리는 링커리어에 없고, 워크넷(work24) 공식 오픈 API로 대체했다 — 이쪽은
-  고용노동부가 제공하는 합법·무료 API라 리스크가 없다.
-- 서비스가 "졸업까지 목표 달성"을 돕는 폭넓은 성격이라, 취업/공모전 외에 자기계발(자격증)과
-  운동 카테고리를 추가했다. 둘 다 공식 오픈API만 사용:
-  - **자격시험**: Q-net(한국산업인력공단) 국가자격시험 시행일정 API.
+- 서비스가 "졸업까지 목표 달성"을 돕는 폭넓은 성격이라, 취업/공모전 외에 운동 카테고리를
+  추가했다. 공식 오픈API만 사용:
   - **운동**: 서울 열린데이터광장 공공서비스예약(체육시설) API — 서울대 학부생 대상 서비스라
     기본값을 관악구로 필터링(`SEOUL_SPORTS_DISTRICTS`로 조정 가능).
 
@@ -44,8 +45,6 @@ Next.js 데이터 계약이 크게 안 바뀌는 한 안정적이다. `src/sourc
 ```
 src/
   sources/linkareer.ts   # SSR JSON 파싱 (대외활동/공모전/인턴)
-  sources/worknet.ts     # work24 오픈 API (채용) — WORKNET_AUTH_KEY 필요
-  sources/qnet.ts        # Q-net 오픈 API (자격시험) — QNET_SERVICE_KEY 필요
   sources/seoulSports.ts # 서울 열린데이터광장 오픈 API (운동, 관악구 필터) — SEOUL_OPENAPI_KEY 필요
   store/                 # 저장 어댑터 (json 기본 / supabase)
   crawl.ts               # 전체 소스 크롤 → store 적재 (CLI: npm run crawl)
@@ -92,7 +91,7 @@ curl "http://localhost:4000/api/listings?category=인턴&keyword=백엔드"
 }
 ```
 
-- `category`는 `공모전 | 대외활동 | 인턴 | 채용 | 자격시험 | 운동` 중 하나. 쿼리 파라미터로 필터링.
+- `category`는 `공모전 | 대외활동 | 인턴 | 운동` 중 하나. 쿼리 파라미터로 필터링.
 - `keyword`는 `title`/`organization`에 대한 부분일치 검색.
 - 백엔드 DB에 저장할 때는 `source + sourceId` 조합을 유니크 키(PK)로 잡고 upsert하면 재크롤링해도 중복이 안 생긴다.
 - 매번 실시간 요청 시 크롤링하지 말고, 크롤러는 하루 1~2회(cron, [스케줄링](#스케줄링-cron) 참고)만 갱신 → 백엔드는 그 결과를 이 API로 가져다 캐시/DB에 반영하는 방식으로 쓴다.
@@ -107,23 +106,6 @@ curl "http://localhost:4000/api/listings?category=인턴&keyword=백엔드"
    `.env`에 `STORAGE_BACKEND=supabase`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`만 채우면
    된다. 필요한 테이블 스키마는 `src/store/supabaseStore.ts` 상단 주석 참고. 코드 변경 없음.
 
-## 채용(워크넷) API 설정
-
-1. https://www.work24.go.kr 가입 → 오픈 API 인증키(authKey) 발급.
-2. `.env`의 `WORKNET_AUTH_KEY`에 채움.
-3. `src/sources/worknet.ts`의 엔드포인트/파라미터는 비로그인 상태에서 확인 가능한 공개 자료
-   기준으로 작성한 best-effort 버전이다. **authKey 발급 후 실제 응답(XML)을 한번 찍어보고
-   필드명이 다르면 `parseWorknetXml`만 맞춰 조정하면 된다** (나머지 파이프라인은 안 바뀜).
-
-## 자격시험(Q-net) API 설정
-
-1. https://www.data.go.kr/data/15074408/openapi.do 에서 활용신청 → 서비스키 발급(승인까지
-   몇 시간 걸릴 수 있음).
-2. `.env`의 `QNET_SERVICE_KEY`에 채움.
-3. `apis.data.go.kr` 계열 API는 응답 스키마가 기관마다 `response.body.items.item[]` 형태로
-   조금씩 다르게 오는 경우가 많아, `src/sources/qnet.ts`의 `normalizeResponse`가 몇 가지
-   흔한 형태를 관대하게 처리하도록 해두었다. 실제 키로 호출해보고 다르면 그 함수만 조정.
-
 ## 운동(서울 체육시설) API 설정
 
 1. https://data.seoul.go.kr/dataList/OA-2266/S/1/datasetView.do 에서 인증키 발급(즉시 발급).
@@ -133,6 +115,17 @@ curl "http://localhost:4000/api/listings?category=인턴&keyword=백엔드"
    (기본값 `관악구`; 서울대입구역 인접까지 넓히려면 `관악구,동작구` 처럼 콤마로 추가).
 3. `src/sources/seoulSports.ts`는 응답 필드(`SVCID`, `SVCNM`, `AREANM`, `RCPTENDDT` 등)를
    실제 API 호출로 확인하고 작성해 별도 조정 없이 바로 동작한다.
+
+## 나중에 다시 붙일 수 있는 소스 (키 발급 대기 중이라 이번엔 제외)
+
+- **채용(워크넷)**: https://www.work24.go.kr 채용정보 오픈API는 개인이 아니라 기업회원 전용이고
+  신청 후 담당자 심사가 필요하다. 팀/학교 명의 사업자등록이 있으면 신청 가능.
+- **자격시험(Q-net)**: https://www.data.go.kr/data/15074408/openapi.do 에서 활용신청 →
+  서비스키 발급까지 승인 대기 시간이 있다.
+
+둘 다 개인 오픈API치고 발급이 느려서 이번 범위에서 뺐다. 키를 받으면
+`src/sources/`에 소스 파일을 추가하고 `crawl.ts`에서 호출 + `store.upsertMany`에 합치면 되는
+구조라 나중에 붙이기 쉽다 (git 히스토리에 이전 구현이 남아있으니 참고 가능).
 
 ## 스케줄링 (cron)
 

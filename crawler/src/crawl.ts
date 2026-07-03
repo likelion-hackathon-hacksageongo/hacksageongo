@@ -1,6 +1,4 @@
 import { crawlLinkareer } from "./sources/linkareer.js";
-import { crawlWorknet } from "./sources/worknet.js";
-import { crawlQnet } from "./sources/qnet.js";
 import { crawlSeoulSports } from "./sources/seoulSports.js";
 import { getStore } from "./store/index.js";
 import type { Listing, ListingCategory } from "./types.js";
@@ -18,22 +16,6 @@ export async function runCrawl(): Promise<Listing[]> {
     } catch (err) {
       console.error(`[linkareer] ${category} 크롤링 실패:`, err);
     }
-  }
-
-  try {
-    const worknetListings = await crawlWorknet({ keyword: "" });
-    console.log(`[worknet] 채용: ${worknetListings.length}건 수집`);
-    all.push(...worknetListings);
-  } catch (err) {
-    console.error("[worknet] 크롤링 실패:", err);
-  }
-
-  try {
-    const qnetListings = await crawlQnet();
-    console.log(`[qnet] 자격시험: ${qnetListings.length}건 수집`);
-    all.push(...qnetListings);
-  } catch (err) {
-    console.error("[qnet] 크롤링 실패:", err);
   }
 
   try {

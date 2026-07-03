@@ -4,8 +4,6 @@ export const config = {
   storageBackend: (process.env.STORAGE_BACKEND ?? "json") as "json" | "supabase",
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-  worknetAuthKey: process.env.WORKNET_AUTH_KEY ?? "",
-  qnetServiceKey: process.env.QNET_SERVICE_KEY ?? "",
   seoulOpenApiKey: process.env.SEOUL_OPENAPI_KEY ?? "",
   seoulSportsDistricts: (process.env.SEOUL_SPORTS_DISTRICTS ?? "관악구")
     .split(",")
