@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import healthRoutes from "./health.routes.js";
 import profilesRoutes from "./profiles.routes.js";
+import surveysRoutes from "./surveys.routes.js";
 import chatRoutes from "./chat.routes.js";
 import activityCandidatesRoutes from "./activityCandidates.routes.js";
 import plansRoutes from "./plans.routes.js";
@@ -11,6 +12,7 @@ const router = Router();
 
 router.use("/health", healthRoutes);
 router.use("/profiles", profilesRoutes);
+router.use("/surveys", surveysRoutes);
 router.use("/chat", chatRoutes);
 router.use("/activity-candidates", activityCandidatesRoutes);
 router.use("/plans", plansRoutes);

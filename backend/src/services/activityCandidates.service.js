@@ -2,6 +2,7 @@ import { supabase } from "../config/supabase.js";
 import { AppError } from "../utils/AppError.js";
 import { generateText } from "./ai/gemini.service.js";
 import { getProfileByGuestId } from "./profiles.service.js";
+import { getSurveyResultOrNull } from "./surveys.service.js";
 import { buildActivityCandidatesPrompt } from "./ai/prompts/activityCandidates.prompt.js";
 
 function ensureSupabaseConfigured() {
@@ -132,10 +133,12 @@ export async function generateActivityCandidates(guestId, options = {}) {
 
   const profile = await getProfileOrNull(guestId);
   const insights = await getUserInsightsOrNull(guestId);
+  const surveyResult = await getSurveyResultOrNull(guestId);
 
   const prompt = buildActivityCandidatesPrompt({
     profile,
     insights,
+    surveyResult,
   });
 
   const aiText = await generateText(prompt);

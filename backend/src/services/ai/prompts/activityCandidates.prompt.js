@@ -1,4 +1,8 @@
-export function buildActivityCandidatesPrompt({ profile, insights }) {
+export function buildActivityCandidatesPrompt({
+  profile,
+  insights,
+  surveyResult,
+}) {
   const profileText = profile
     ? JSON.stringify(profile, null, 2)
     : "프로필 정보 없음";
@@ -6,6 +10,10 @@ export function buildActivityCandidatesPrompt({ profile, insights }) {
   const insightsText = insights
     ? JSON.stringify(insights, null, 2)
     : "사용자 인사이트 없음";
+
+  const surveyResultText = surveyResult
+    ? JSON.stringify(surveyResult, null, 2)
+    : "설문 결과 없음";
 
   return `
 너는 "학사견고"의 대학생활 설계 AI다.
@@ -36,6 +44,9 @@ ${profileText}
 
 사용자 인사이트:
 ${insightsText}
+
+사용자 설문 분석 결과:
+${surveyResultText}
 
 요구사항:
 - 활동 후보를 6~10개 생성해라.
